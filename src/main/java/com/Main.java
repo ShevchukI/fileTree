@@ -1,17 +1,15 @@
 package com;
 
-import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.EnumSet;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Scanner;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Exchanger;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
+        Exchanger<Path> exchanger = new Exchanger<>();
 
         System.out.println("Enter root path:");
         Path rootPath = Paths.get(input.nextLine());
@@ -22,36 +20,13 @@ public class Main {
         System.out.println("Enter mask:");
         input.nextLine();
         String mask = input.nextLine();
-        long time = System.nanoTime();
-
-        BlockingQueue<Path> result = new LinkedBlockingQueue<>();
-
-        OutputThread consumer = new OutputThread(result);
-        Thread thread = new Thread(consumer);
-        thread.start();
-
-        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if (file.getFileName().toString().contains(mask)) {
-                    try {
-                        result.put(file);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-//                    result.push(file);
-
-                }
-                return FileVisitResult.CONTINUE;
-            }
-        });
-
-        consumer.terminate();
 
 
-        time = System.nanoTime() - time;
-        System.out.printf("Elapsed %,9.3f ms\n", time/1_000_000.0);
+        Thread put = new Thread(new PutThread(rootPath, depth, mask, exchanger));
+        Thread get = new Thread(new GetThread(exchanger));
+
+        put.start();
+        get.start();
     }
-
 
 }
