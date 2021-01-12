@@ -1,13 +1,16 @@
-package com;
+package com.telnet;
+
+import com.GetThread;
 
 import java.nio.file.Path;
 import java.util.concurrent.Exchanger;
 
-public class GetThread implements Runnable {
-    protected Exchanger<Path> exchanger;
+public class GetClientThread extends GetThread {
+    private TelnetClient client;
 
-    public GetThread(Exchanger<Path> exchanger) {
-        this.exchanger = exchanger;
+    public GetClientThread(TelnetClient client, Exchanger<Path> exchanger){
+        super(exchanger);
+        this.client = client;
     }
 
     @Override
@@ -18,15 +21,15 @@ public class GetThread implements Runnable {
             do {
                 Path path = exchanger.exchange(null);
                 if (path != null) {
-                    System.out.println(path.toAbsolutePath());
+                    client.send(path);
                 } else {
                     isDone = true;
                 }
             } while (!isDone);
+            client.printMenu();
 
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
-
 }
