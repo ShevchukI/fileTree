@@ -62,8 +62,10 @@ public class TelnetClient extends Thread {
                         searchFile();
 
                         break;
-                    case "4":
+                    case "0":
                         printStream.println("exit");
+                        connection.close();
+                        stop = true;
                         break;
                     default:
                         printStream.println("Try again");
@@ -80,7 +82,7 @@ public class TelnetClient extends Thread {
     }
 
     private void searchFile() throws IOException, InterruptedException {
-
+        long m = System.currentTimeMillis();
         if (mask.equals("") || mask == null) {
             printStream.println("You need set mask!");
         } else {
@@ -96,6 +98,7 @@ public class TelnetClient extends Thread {
 //            } while (!isDone);
 
         }
+        printStream.println((double) (System.currentTimeMillis() - m));
     }
 
     private void inputMask() throws IOException {

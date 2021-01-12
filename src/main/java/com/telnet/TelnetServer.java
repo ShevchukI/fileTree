@@ -101,36 +101,24 @@ public class TelnetServer extends Thread {
     }
 
     public void searchFiles(int depth, String mask, String uniqueId) throws InterruptedException, IOException {
-        client = activeConnections.get(uniqueId);
-        Exchanger<Path> exchanger = new Exchanger<>();
+//        client = activeConnections.get(uniqueId);
+//        Exchanger<Path> exchanger = new Exchanger<>();
+//
+//        Thread putThread = new Thread(new PutThread(rootPath, depth, mask, exchanger));
+//        Thread getThread = new Thread(new GetClientThread(client, exchanger));
+//
+//        putThread.start();
+//        getThread.start();
+        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, new CustomFileVisitor<Path>(activeConnections.get(uniqueId)) {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
 
-        Thread putThread = new Thread(new PutThread(rootPath, depth, mask, exchanger));
-        Thread getThread = new Thread(new GetClientThread(client, exchanger));
+                if (file.getFileName().toString().contains(mask)) {
+                    sendFile(file);
+                }
 
-        putThread.start();
-        getThread.start();
-//        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, new SimpleFileVisitor<Path>() {
-//            @Override
-//            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-//
-//                //try {
-//
-//                    if (file.getFileName().toString().contains(mask)) {
-//                        //exchanger.exchange(file);
-//                        System.out.println(file.toAbsolutePath());
-//
-//                        client.send(file);
-//
-//                    }
-//
-////                } catch (InterruptedException e) {
-////                    e.printStackTrace();
-////                }
-//
-//                return FileVisitResult.CONTINUE;
-//            }
-//        });
-
-      //  exchanger.exchange(null);
+                return FileVisitResult.CONTINUE;
+            }
+        });
     }
 }
