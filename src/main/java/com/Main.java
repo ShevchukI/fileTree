@@ -21,7 +21,6 @@ public class Main {
         input.nextLine();
         String mask = input.nextLine();
 
-
         Thread put = new Thread(new PutThread(rootPath, depth, mask, exchanger));
         Thread get = new Thread(new GetThread(exchanger));
 

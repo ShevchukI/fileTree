@@ -23,25 +23,32 @@ public class PutThread implements Runnable {
     public void run() {
         try {
 
-            Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                    try {
-                        if (file.getFileName().toString().contains(mask)) {
-                            exchanger.exchange(file);
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-
-            exchanger.exchange(null);
+           walkFileTree(rootPath, depth, mask, exchanger);
 
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private void walkFileTree(Path rootPath, int depth, String mask, Exchanger<Path> exchanger) throws IOException, InterruptedException {
+        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+
+                try {
+
+                    if (file.getFileName().toString().contains(mask)) {
+                        exchanger.exchange(file);
+                    }
+
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
+        exchanger.exchange(null);
     }
 }
