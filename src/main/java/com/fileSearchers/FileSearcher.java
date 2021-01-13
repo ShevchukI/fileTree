@@ -5,30 +5,28 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.EnumSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.concurrent.Exchanger;
 
 public class FileSearcher {
     private Path root;
     private int depth;
     private String mask;
-    private List<Path> searchResults;
 
     public FileSearcher(Path root, int depth, String mask) {
         this.root = root;
         this.depth = depth;
         this.mask = mask;
-
-        searchResults = new LinkedList<>();
     }
 
-    public void search() throws IOException {
-        FileWalker fileWalker = new FileWalker(mask, searchResults::add);
+    public void search(Exchanger<Path> exchanger) throws IOException {
+        FileWalker fileWalker = new FileWalker(root, mask, file -> {
+            try {
+                exchanger.exchange(file);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        });
 
         Files.walkFileTree(root, EnumSet.noneOf(FileVisitOption.class), depth, fileWalker);
-    }
-
-    public List<Path> getResults() {
-        return new LinkedList<>(searchResults);
     }
 }

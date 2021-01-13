@@ -1,7 +1,11 @@
 package com;
 
+import com.threads.ResultThread;
+import com.threads.SearchThread;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.concurrent.Exchanger;
 
@@ -11,21 +15,41 @@ public class Main {
         Scanner input = new Scanner(System.in);
         Exchanger<Path> exchanger = new Exchanger<>();
 
-        System.out.println("Enter root path:");
-        Path rootPath = Paths.get(input.nextLine());
+        Path rootPath = inputPath(input);
 
-        System.out.println("Enter depth:");
-        int depth = input.nextInt();
+        int depth = inputDepth(input);
 
-        System.out.println("Enter mask:");
         input.nextLine();
-        String mask = input.nextLine();
+        String mask = inputMask(input);
 
-        Thread put = new Thread(new PutThread(rootPath, depth, mask, exchanger));
-        Thread get = new Thread(new GetThread(exchanger));
+        new Thread(new SearchThread(rootPath, depth, mask, exchanger)).start();
+        new Thread(new ResultThread(exchanger)).start();
 
-        put.start();
-        get.start();
+    }
+
+    private static Path inputPath(Scanner input) {
+        System.out.println("Enter root path:");
+        return Paths.get(input.nextLine());
+    }
+
+    private static int inputDepth(Scanner input) {
+        int depth = -1;
+        do {
+            try {
+                System.out.println("Enter depth:");
+                depth = input.nextInt();
+
+            } catch (InputMismatchException e) {
+                input.nextLine();
+            }
+        } while (depth < 0);
+
+        return depth;
+    }
+
+    private static String inputMask(Scanner input) {
+        System.out.println("Enter mask:");
+        return input.nextLine();
     }
 
 }
