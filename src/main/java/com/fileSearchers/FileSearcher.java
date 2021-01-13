@@ -1,5 +1,7 @@
 package com.fileSearchers;
 
+import com.fileSearchers.entities.DepthDirectory;
+
 import java.io.File;
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -17,25 +19,25 @@ public class FileSearcher {
     }
 
     public void search(Exchanger<File> exchanger) throws InterruptedException {
-        Queue<File> depthDirectories = new ArrayDeque<>();
-        int currentDepth = 0;
+        Queue<DepthDirectory> depthDirectories = new ArrayDeque<>();
+        DepthDirectory depthDirectory = new DepthDirectory(0, root);
 
         do {
-            File currentFile = root;
-
+            File currentFile = depthDirectory.getFile();
+            int currentDepth = depthDirectory.getDepth();
             if (currentFile.isDirectory()) {
                 for (File file : currentFile.listFiles()) {
                     if (currentDepth < depth && file.isDirectory()) {
-                        depthDirectories.add(file);
+                        depthDirectories.add(new DepthDirectory(currentDepth + 1, file));
                     }
                     if (file.getName().contains(mask)) {
                         exchanger.exchange(file);
                     }
                 }
             }
-            currentDepth++;
-            root = depthDirectories.poll();
-        } while (root != null);
+
+            depthDirectory = depthDirectories.poll();
+        } while (depthDirectory != null);
 
         exchanger.exchange(null);
     }

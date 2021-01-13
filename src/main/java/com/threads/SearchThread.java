@@ -3,8 +3,6 @@ package com.threads;
 import com.fileSearchers.FileSearcher;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.concurrent.Exchanger;
 
 public class SearchThread implements Runnable {
