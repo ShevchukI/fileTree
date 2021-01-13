@@ -1,6 +1,7 @@
 package com;
 
-import com.fileVisitors.CustomFileVisitor;
+import com.threads.ResultThread;
+import com.threads.SearchThread;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,19 +12,19 @@ import java.util.concurrent.Exchanger;
 public class Main {
 
     public static void main(String[] args) {
-
         Scanner input = new Scanner(System.in);
         Exchanger<Path> exchanger = new Exchanger<>();
 
         Path rootPath = inputPath(input);
+
         int depth = inputDepth(input);
+
+        input.nextLine();
         String mask = inputMask(input);
 
-        Thread put = new Thread(new PutThread(rootPath, depth, mask, exchanger));
-        Thread get = new Thread(new GetThread(exchanger));
+        new Thread(new SearchThread(rootPath, depth, mask, exchanger)).start();
+        new Thread(new ResultThread(exchanger)).start();
 
-        put.start();
-        get.start();
     }
 
     private static Path inputPath(Scanner input) {
@@ -35,14 +36,12 @@ public class Main {
         int depth = -1;
         do {
             try {
-
                 System.out.println("Enter depth:");
                 depth = input.nextInt();
 
             } catch (InputMismatchException e) {
                 input.nextLine();
             }
-
         } while (depth < 0);
 
         return depth;
@@ -50,7 +49,7 @@ public class Main {
 
     private static String inputMask(Scanner input) {
         System.out.println("Enter mask:");
-        input.nextLine();
         return input.nextLine();
     }
+
 }
