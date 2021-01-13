@@ -3,8 +3,7 @@ package com;
 import com.threads.ResultThread;
 import com.threads.SearchThread;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.File;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.concurrent.Exchanger;
@@ -13,9 +12,9 @@ public class Main {
 
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
-        Exchanger<Path> exchanger = new Exchanger<>();
+        Exchanger<File> exchanger = new Exchanger<>();
 
-        Path rootPath = inputPath(input);
+        File rootPath = inputPath(input);
 
         int depth = inputDepth(input);
 
@@ -27,9 +26,9 @@ public class Main {
 
     }
 
-    private static Path inputPath(Scanner input) {
+    private static File inputPath(Scanner input) {
         System.out.println("Enter root path:");
-        return Paths.get(input.nextLine());
+        return new File(input.nextLine());
     }
 
     private static int inputDepth(Scanner input) {

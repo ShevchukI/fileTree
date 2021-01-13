@@ -1,12 +1,12 @@
 package com.threads;
 
-import java.nio.file.Path;
+import java.io.File;
 import java.util.concurrent.Exchanger;
 
 public class ResultThread implements Runnable {
-    private Exchanger<Path> exchanger;
+    private Exchanger<File> exchanger;
 
-    public ResultThread(Exchanger<Path> exchanger) {
+    public ResultThread(Exchanger<File> exchanger) {
         this.exchanger = exchanger;
     }
 
@@ -15,10 +15,10 @@ public class ResultThread implements Runnable {
         try {
             boolean isDone = false;
             do {
-                Path path = exchanger.exchange(null);
+                File file = exchanger.exchange(null);
 
-                if (path != null) {
-                    System.out.println(path.toAbsolutePath());
+                if (file != null) {
+                    System.out.println(file.getAbsolutePath());
                 } else {
                     isDone = true;
                 }
