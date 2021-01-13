@@ -13,20 +13,23 @@ public class GetThread implements Runnable {
     @Override
     public void run() {
         try {
-            boolean isDone = false;
-
-            do {
-                Path path = exchanger.exchange(null);
-                if (path != null) {
-                    System.out.println(path.toAbsolutePath());
-                } else {
-                    isDone = true;
-                }
-            } while (!isDone);
+            receiveFile();
 
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private void receiveFile() throws InterruptedException {
+        boolean isDone = false;
+        do {
+            Path path = exchanger.exchange(null);
+            if (path != null) {
+                System.out.println(path.toAbsolutePath());
+            } else {
+                isDone = true;
+            }
+        } while (!isDone);
     }
 
 }

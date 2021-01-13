@@ -1,8 +1,11 @@
 package com;
 
+import com.fileVisitors.CustomFileVisitor;
+
 import java.io.IOException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.concurrent.Exchanger;
 
@@ -12,43 +15,36 @@ public class PutThread implements Runnable {
     private int depth;
     private String mask;
 
+
     public PutThread(Path rootPath, int depth, String mask, Exchanger<Path> exchanger) {
-        this.exchanger = exchanger;
         this.rootPath = rootPath;
         this.depth = depth;
         this.mask = mask;
+        this.exchanger = exchanger;
     }
 
     @Override
     public void run() {
-        try {
 
-           walkFileTree(rootPath, depth, mask, exchanger);
+        walkFileTree();
 
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
-    private void walkFileTree(Path rootPath, int depth, String mask, Exchanger<Path> exchanger) throws IOException, InterruptedException {
-        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-
+    private void walkFileTree() {
+        try {
+            CustomFileVisitor fileVisitor = new CustomFileVisitor(rootPath, mask, file -> {
                 try {
-
-                    if (file.getFileName().toString().contains(mask)) {
-                        exchanger.exchange(file);
-                    }
-
+                    exchanger.exchange(file);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+            });
 
-                return FileVisitResult.CONTINUE;
-            }
-        });
+            Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, fileVisitor);
 
-        exchanger.exchange(null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 }
