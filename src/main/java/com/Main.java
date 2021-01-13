@@ -2,9 +2,8 @@ package com;
 
 import com.fileSearchers.FileSearcher;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -13,7 +12,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         Scanner input = new Scanner(System.in);
 
-        Path rootPath = inputPath(input);
+        File rootPath = inputPath(input);
         int depth = inputDepth(input);
 
         input.nextLine();
@@ -22,15 +21,15 @@ public class Main {
         FileSearcher fileSearcher = new FileSearcher(rootPath, depth, mask);
         fileSearcher.search();
 
-        for(Path path:fileSearcher.getResults()){
-            System.out.println(path.toAbsolutePath());
+        for(File file:fileSearcher.getResults()){
+            System.out.println(file.getAbsolutePath());
         }
 
     }
 
-    private static Path inputPath(Scanner input) {
+    private static File inputPath(Scanner input) {
         System.out.println("Enter root path:");
-        return Paths.get(input.nextLine());
+        return new File(input.nextLine());
     }
 
     private static int inputDepth(Scanner input) {
