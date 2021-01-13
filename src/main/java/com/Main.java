@@ -3,13 +3,12 @@ package com;
 import com.fileSearchers.FileSearcher;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
 
         File rootPath = inputPath(input);
