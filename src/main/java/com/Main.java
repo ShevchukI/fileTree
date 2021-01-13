@@ -4,24 +4,17 @@ import com.telnet.TelnetServer;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.InputMismatchException;
 import java.util.Scanner;
-import java.util.concurrent.Exchanger;
 
 public class Main {
 
     public static void main(String[] args) {
         Scanner input = new Scanner(System.in);
 
-        int serverPort = -1;
+        int serverPort = inputServerPort(input);
 
-        do {
-            System.out.println("Enter server port:");
-            serverPort = input.nextInt();
-        } while (serverPort < 0);
-
-        input.nextLine();
-        System.out.println("Enter root path:");
-        Path rootPath = Paths.get(input.nextLine());
+        Path rootPath = inputRootPath(input);
 
         TelnetServer server = new TelnetServer(serverPort, rootPath);
         server.start();
@@ -30,4 +23,26 @@ public class Main {
         System.out.println("Root directory: " + rootPath);
     }
 
+    private static int inputServerPort(Scanner input) {
+        int serverPort = -1;
+        do {
+            try {
+
+                System.out.println("Enter serverPort:");
+                serverPort = input.nextInt();
+
+            } catch (InputMismatchException e) {
+                input.nextLine();
+            }
+
+        } while (serverPort < 0);
+
+        return serverPort;
+    }
+
+    private static Path inputRootPath(Scanner input) {
+        System.out.println("Enter root path:");
+        input.nextLine();
+        return Paths.get(input.nextLine());
+    }
 }

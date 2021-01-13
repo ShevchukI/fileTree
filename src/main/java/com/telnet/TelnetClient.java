@@ -1,5 +1,7 @@
 package com.telnet;
 
+import com.GetThread;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Path;
@@ -83,19 +85,14 @@ public class TelnetClient extends Thread {
 
     private void searchFile() throws IOException, InterruptedException {
         long m = System.currentTimeMillis();
-        if (mask.equals("") || mask == null) {
+
+        if (mask.equals("")) {
             printStream.println("You need set mask!");
         } else {
-           // boolean isDone = false;
-            telnetServer.searchFiles(depth, mask, getUniqueId());
-//            do {
-//                Path path = exchanger.exchange(null);
-//                if (path != null) {
-//                    printStream.println(path.toAbsolutePath());
-//                } else {
-//                    isDone = true;
-//                }
-//            } while (!isDone);
+            Thread get = new Thread(new GetThread(exchanger, printStream));
+            get.start();
+
+            telnetServer.searchFiles(depth, mask, exchanger);
 
         }
         printStream.println((double) (System.currentTimeMillis() - m));
@@ -122,13 +119,5 @@ public class TelnetClient extends Thread {
         menu.append("0. Exit");
 
         return menu.toString();
-    }
-
-    public void printMenu(){
-        printStream.println(showMenu(depth, mask));
-    }
-
-    public void send(Path file) {
-        printStream.println(file.toAbsolutePath());
     }
 }

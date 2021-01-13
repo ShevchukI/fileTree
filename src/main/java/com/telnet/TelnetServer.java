@@ -1,15 +1,15 @@
 package com.telnet;
 
-import com.GetThread;
-import com.PutThread;
+import com.fileVisitors.CustomFileVisitor;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.FileVisitOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -100,25 +100,17 @@ public class TelnetServer extends Thread {
         return serverPort;
     }
 
-    public void searchFiles(int depth, String mask, String uniqueId) throws InterruptedException, IOException {
-//        client = activeConnections.get(uniqueId);
-//        Exchanger<Path> exchanger = new Exchanger<>();
-//
-//        Thread putThread = new Thread(new PutThread(rootPath, depth, mask, exchanger));
-//        Thread getThread = new Thread(new GetClientThread(client, exchanger));
-//
-//        putThread.start();
-//        getThread.start();
-        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, new CustomFileVisitor<Path>(activeConnections.get(uniqueId)) {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+    public void searchFiles(int depth, String mask, Exchanger<Path> exchanger) throws IOException {
 
-                if (file.getFileName().toString().contains(mask)) {
-                    sendFile(file);
-                }
-
-                return FileVisitResult.CONTINUE;
+        CustomFileVisitor fileVisitor = new CustomFileVisitor(rootPath, mask, file -> {
+            try {
+                exchanger.exchange(file);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         });
+
+        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, fileVisitor);
+
     }
 }

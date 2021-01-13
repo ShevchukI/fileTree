@@ -1,13 +1,20 @@
 package com;
 
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.concurrent.Exchanger;
 
 public class GetThread implements Runnable {
-    protected Exchanger<Path> exchanger;
+    private Exchanger<Path> exchanger;
+    private PrintStream printStream;
 
     public GetThread(Exchanger<Path> exchanger) {
         this.exchanger = exchanger;
+    }
+
+    public GetThread(Exchanger<Path> exchanger, PrintStream printStream){
+        this.exchanger = exchanger;
+        this.printStream = printStream;
     }
 
     @Override
@@ -25,7 +32,7 @@ public class GetThread implements Runnable {
         do {
             Path path = exchanger.exchange(null);
             if (path != null) {
-                System.out.println(path.toAbsolutePath());
+                printStream.println(path.toAbsolutePath());
             } else {
                 isDone = true;
             }
