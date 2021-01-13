@@ -13,7 +13,7 @@ public class TelnetClient extends Thread {
 
     private int depth;
     private String mask;
-    private Exchanger<Path> exchanger;
+    private Exchanger<File> exchanger;
 
     private BufferedReader clientInput;
     private PrintStream clientOutput;
@@ -66,12 +66,12 @@ public class TelnetClient extends Thread {
                 clientOutput.flush();
             }
 
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
 
-    private void searchFile() throws IOException {
+    private void searchFile() throws InterruptedException {
         if (mask.equals("")) {
             clientOutput.println("You need set mask!");
         } else {

@@ -2,8 +2,7 @@ package com;
 
 import com.telnet.TelnetServer;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.File;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -14,7 +13,7 @@ public class Main {
 
         int serverPort = inputServerPort(input);
 
-        Path rootPath = inputRootPath(input);
+        File rootPath = inputRootPath(input);
 
         new TelnetServer(serverPort, rootPath).start();
 
@@ -39,9 +38,9 @@ public class Main {
         return serverPort;
     }
 
-    private static Path inputRootPath(Scanner input) {
+    private static File inputRootPath(Scanner input) {
         System.out.println("Enter root path:");
         input.nextLine();
-        return Paths.get(input.nextLine());
+        return new File(input.nextLine());
     }
 }
