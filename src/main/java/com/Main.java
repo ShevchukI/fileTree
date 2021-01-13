@@ -10,7 +10,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         Scanner input = new Scanner(System.in);
-        Stack<Path> result = new Stack<>();
+        List<Path> result = new LinkedList<>();
 
         System.out.println("Enter root path:");
         Path rootPath = Paths.get(input.nextLine());
@@ -21,19 +21,13 @@ public class Main {
         System.out.println("Enter mask:");
         input.nextLine();
         String mask = input.nextLine();
-        
-        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, new SimpleFileVisitor<Path>(){
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                if(file.getFileName().toString().contains(mask)){
-                    result.push(file);
-                }
-                return FileVisitResult.CONTINUE;
-            }
-        });
 
-        while (!result.empty()){
-            System.out.println(result.pop().toAbsolutePath());
+        CustomFileVisitor fileVisitor = new CustomFileVisitor(mask, result::add);
+        
+        Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), depth, fileVisitor);
+
+        for(Path path:result){
+            System.out.println(path.toAbsolutePath());
         }
 
     }
