@@ -1,6 +1,6 @@
 package com.telnet;
 
-import com.GetThread;
+import com.threads.ResultThread;
 
 import java.io.*;
 import java.net.Socket;
@@ -8,52 +8,41 @@ import java.nio.file.Path;
 import java.util.concurrent.Exchanger;
 
 public class TelnetClient extends Thread {
-    private TelnetServer telnetServer = null;
-    private Socket connection = null;
+    private TelnetServer telnetServer;
+    private Socket connection;
 
-    private String uniqueId = null;
-    private int depth = 0;
-    private String mask = "";
+    private int depth;
+    private String mask;
     private Exchanger<Path> exchanger;
 
-    private InputStream inputStream = null;
-    private OutputStream outputStream = null;
-    private boolean stop = false;
+    private BufferedReader clientInput;
+    private PrintStream clientOutput;
 
-    private BufferedReader bufferedReader = null;
-    private PrintStream printStream = null;
-
-
-    public TelnetClient(TelnetServer telnetServer, Socket connection, String uniqueId) {
+    public TelnetClient(TelnetServer telnetServer, Socket connection) {
         this.telnetServer = telnetServer;
         this.connection = connection;
-        this.uniqueId = uniqueId;
-    }
-
-    public String getUniqueId() {
-        return uniqueId;
+        depth = 0;
+        mask = "";
+        exchanger = new Exchanger<>();
     }
 
     @Override
     public void run() {
         try {
-            telnetServer.clientConnected(this);
+            InputStream clientInputStream = connection.getInputStream();
+            OutputStream clientOutputStream = connection.getOutputStream();
 
-            inputStream = connection.getInputStream();
-            outputStream = connection.getOutputStream();
+            clientInput = new BufferedReader(new InputStreamReader(clientInputStream));
+            clientOutput = new PrintStream(clientOutputStream);
+            clientOutput.println("Telnet server on port:" + telnetServer.getServerPort());
+            clientOutput.println("Root directory: " + telnetServer.getRootAbsolutePath());
+            clientOutput.println(showMenu(depth, mask));
+            clientOutput.flush();
 
-            exchanger = new Exchanger<>();
-
-            bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-            printStream = new PrintStream(outputStream);
-            printStream.println("Telnet server on port:" + telnetServer.getServerPort());
-            printStream.println("Root directory: " + telnetServer.getRootAbsolutePath());
-            printStream.println(showMenu(depth, mask));
-            printStream.flush();
-
-            String cmd = null;
-            while (!stop && (cmd = bufferedReader.readLine()) != null) {
-                switch (cmd) {
+            String line;
+            boolean stop = false;
+            while (!stop && (line = clientInput.readLine()) != null) {
+                switch (line) {
                     case "1":
                         inputDepth();
                         break;
@@ -62,62 +51,55 @@ public class TelnetClient extends Thread {
                         break;
                     case "3":
                         searchFile();
-
                         break;
                     case "0":
-                        printStream.println("exit");
+                        clientOutput.println("exit");
                         connection.close();
                         stop = true;
                         break;
                     default:
-                        printStream.println("Try again");
+                        clientOutput.println("Try again");
                         break;
                 }
-                printStream.println(showMenu(depth, mask));
+                clientOutput.println(showMenu(depth, mask));
 
-                printStream.flush();
+                clientOutput.flush();
             }
 
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void searchFile() throws IOException, InterruptedException {
-        long m = System.currentTimeMillis();
-
+    private void searchFile() throws IOException {
         if (mask.equals("")) {
-            printStream.println("You need set mask!");
+            clientOutput.println("You need set mask!");
         } else {
-            Thread get = new Thread(new GetThread(exchanger, printStream));
-            get.start();
+            new Thread(new ResultThread(exchanger, clientOutput)).start();
 
             telnetServer.searchFiles(depth, mask, exchanger);
-
         }
-        printStream.println((double) (System.currentTimeMillis() - m));
     }
 
     private void inputMask() throws IOException {
-        printStream.println("Enter mask:");
-        mask = bufferedReader.readLine();
+        clientOutput.println("Enter mask:");
+        mask = clientInput.readLine();
     }
 
     private void inputDepth() throws IOException {
         do {
-            printStream.println("Enter depth:");
-            depth = Integer.parseInt(bufferedReader.readLine());
+            clientOutput.println("Enter depth:");
+            depth = Integer.parseInt(clientInput.readLine());
         } while (depth < 0);
     }
 
     private String showMenu(int depth, String mask) {
-        StringBuilder menu = new StringBuilder("\r\n");
-        menu.append("Menu:\r\n");
-        menu.append("1. Set depth").append(" (current: ").append(depth).append(")\r\n");
-        menu.append("2. Set mask").append(" (current: ").append(mask).append(")\r\n");
-        menu.append("3. Search\r\n");
-        menu.append("0. Exit");
 
-        return menu.toString();
+        String menu = "\r\n" + "Menu:\r\n" +
+                "1. Set depth" + " (current: " + depth + ")\r\n" +
+                "2. Set mask" + " (current: " + mask + ")\r\n" +
+                "3. Search\r\n" +
+                "0. Exit";
+        return menu;
     }
 }

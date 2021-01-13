@@ -16,8 +16,7 @@ public class Main {
 
         Path rootPath = inputRootPath(input);
 
-        TelnetServer server = new TelnetServer(serverPort, rootPath);
-        server.start();
+        new TelnetServer(serverPort, rootPath).start();
 
         System.out.println("Server started on port " + serverPort);
         System.out.println("Root directory: " + rootPath);
